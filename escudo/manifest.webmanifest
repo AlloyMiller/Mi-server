@@ -1,0 +1,15 @@
+{
+  "name": "Escudo Móvil",
+  "short_name": "Escudo",
+  "description": "Optimizador, antivirus de archivos y filtro anti-spam que funciona sin conexión y sin gastar tokens.",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f2a2e",
+  "theme_color": "#0f2a2e",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
