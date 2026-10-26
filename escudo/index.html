@@ -214,6 +214,7 @@ details summary{cursor:pointer;font-weight:700}
     <h3>Contactos y webs de confianza</h3>
     <p class="muted">Evita falsos avisos: los números o dominios de aquí (p. ej. tu banco real) no suman riesgo. Las palabras peligrosas del texto se siguen revisando.</p>
     <div class="actions" style="flex-wrap:nowrap"><input type="text" id="okIn" placeholder="Número o dominio (bbva.mx)" aria-label="Número o dominio de confianza"><button id="okAdd">Añadir</button></div>
+    <div class="actions"><button class="ghost" id="okImp" hidden>Importar contactos</button></div>
     <div id="okList" class="actions"></div>
   </div>
   <div class="card">
@@ -310,6 +311,16 @@ Muchas gracias de antemano, la verdad es que te lo agradecería mucho.</textarea
     <p class="muted">Sin anuncios, sin cuentas y sin rastreadores. Comprueba tú mismo cada conexión que ha hecho la app en esta sesión.</p>
     <div class="actions"><button class="ghost" id="netAudit">Ver conexiones</button></div>
     <div id="netOut"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Ayuda</span>
+    <h3>Preguntas frecuentes</h3>
+    <details><summary>¿Por qué no puede borrar apps?</summary><p class="muted">Por seguridad, el navegador no permite que una web desinstale apps. Escudo te indica cuáles revisar y las quitas tú desde Ajustes.</p></details>
+    <details><summary>¿Por qué no lee mis SMS?</summary><p class="muted">Una web no tiene acceso a tus SMS. Tú decides qué mensaje analizar: pégalo o compártelo.</p></details>
+    <details><summary>¿Cómo comparto un mensaje a Escudo?</summary><p class="muted">Instala Escudo, mantén pulsado el mensaje, elige Compartir y selecciona Escudo (Android).</p></details>
+    <details><summary>¿Cuesta dinero?</summary><p class="muted">No. Es gratis, sin anuncios ni suscripción.</p></details>
+    <details><summary>¿Cómo actualizo la app?</summary><p class="muted">Cierra Escudo por completo y vuelve a abrirla.</p></details>
+    <div class="actions"><button class="ghost" id="dxExport">Exportar diagnóstico</button></div>
   </div>
 </section>
 </main>
@@ -733,6 +744,13 @@ function renderOk(){
 }
 $("#okAdd").addEventListener("click", () => { const w = $("#okIn").value.trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, ""); if(!w) return; const l = store.get("allow", []); if(!l.includes(w)) l.push(w); store.set("allow", l); $("#okIn").value = ""; renderOk(); });
 $("#okList").addEventListener("click", e => { const w = e.target.dataset.w; if(w != null){ store.set("allow", store.get("allow", []).filter(x => x !== w)); renderOk(); } });
+if("contacts" in navigator && "ContactsManager" in window){ $("#okImp").hidden = false; $("#okImp").addEventListener("click", async () => {
+  try{
+    const c = await navigator.contacts.select(["name","tel"], { multiple:true }); const l = store.get("allow", []);
+    c.forEach(p => (p.tel || []).forEach(t => { const w = String(t).replace(/\s+/g, ""); if(w && !l.includes(w)) l.push(w); }));
+    store.set("allow", l); renderOk(); toast("Contactos importados");
+  }catch(e){ toast("No se pudieron importar los contactos"); }
+}); }
 renderHist(); renderBlk(); renderOk(); renderSpam(analyzeMessage($("#spamIn").value, ""));
 
 /* ---------- agentes ---------- */
@@ -925,6 +943,11 @@ $("#netAudit").addEventListener("click", () => {
 $("#bkExport").addEventListener("click", () => {
   const data = {}; BK_KEYS.forEach(k => data[k] = store.get(k, null));
   $("#bkTxt").value = JSON.stringify({ escudo:1, data }); copy($("#bkTxt").value, $("#bkTxt"));
+});
+$("#dxExport").addEventListener("click", () => {
+  const n = k => { const v = store.get(k, []); return Array.isArray(v) ? v.length : (v && typeof v === "object" ? Object.keys(v).length : 0); };
+  const txt = ["Escudo diagnóstico", "userAgent: " + navigator.userAgent, "pantalla: " + screen.width + "x" + screen.height, "caché: escudo-v4", "block: " + n("block"), "allow: " + n("allow"), "hashes: " + n("hashes"), "fecha: " + new Date().toISOString()].join("\n");
+  copy(txt);
 });
 $("#bkImport").addEventListener("click", () => {
   try{ const j = JSON.parse($("#bkTxt").value); if(!j.escudo) throw 0; BK_KEYS.forEach(k => { if(j.data[k] != null) store.set(k, j.data[k]); }); toast("Ajustes restaurados"); setTimeout(() => location.reload(), 900); }
