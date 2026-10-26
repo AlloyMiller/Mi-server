@@ -210,6 +210,13 @@ details summary{cursor:pointer;font-weight:700}
     <div id="blkList" class="actions"></div>
   </div>
   <div class="card">
+    <span class="eyebrow">Lista de confianza</span>
+    <h3>Contactos y webs de confianza</h3>
+    <p class="muted">Evita falsos avisos: los números o dominios de aquí (p. ej. tu banco real) no suman riesgo. Las palabras peligrosas del texto se siguen revisando.</p>
+    <div class="actions" style="flex-wrap:nowrap"><input type="text" id="okIn" placeholder="Número o dominio (bbva.mx)" aria-label="Número o dominio de confianza"><button id="okAdd">Añadir</button></div>
+    <div id="okList" class="actions"></div>
+  </div>
+  <div class="card">
     <span class="eyebrow">Historial</span>
     <div id="spamHist" class="muted">Aún no has analizado mensajes.</div>
   </div>
@@ -296,6 +303,13 @@ Muchas gracias de antemano, la verdad es que te lo agradecería mucho.</textarea
     <p class="muted">Copia este texto para pasar tus listas y avances a otro teléfono, o pega uno para restaurarlo.</p>
     <textarea id="bkTxt" aria-label="Copia de seguridad" class="mono"></textarea>
     <div class="actions"><button class="ghost" id="bkExport">Generar y copiar</button><button class="ghost" id="bkImport">Restaurar desde el texto</button></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Transparencia</span>
+    <h3>¿Qué envía Escudo a internet?</h3>
+    <p class="muted">Sin anuncios, sin cuentas y sin rastreadores. Comprueba tú mismo cada conexión que ha hecho la app en esta sesión.</p>
+    <div class="actions"><button class="ghost" id="netAudit">Ver conexiones</button></div>
+    <div id="netOut"></div>
   </div>
 </section>
 </main>
@@ -664,7 +678,7 @@ function analyzeMessage(text, from){
   for(const [re, w, why] of RULES){ if(re.test(text)){ sig.push([w >= 3 ? "bad" : "warn", why]); score += w; } }
   const urls = (text.match(/(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+|\b[a-z0-9-]+(\.[a-z0-9-]+)*\.(com|net|org|xyz|top|click|info|es|mx|co|ly|io|me|app|site|online|shop|live|link|gd|at|cc|tk|ml|ga|cf|gq|icu|buzz|vip|sbs|cfd)\b[^\s]*)/gi) || []).slice(0, 8);
   const links = urls.map(analyzeUrl);
-  links.forEach(l => l.sig.forEach(s => { score += s[0] === "bad" ? 4 : 2; }));
+  links.forEach(l => { if(trusted("", l.host)){ l.sig = [["info","Dominio de tu lista de confianza."]]; return; } l.sig.forEach(s => { score += s[0] === "bad" ? 4 : 2; }); });
   if(urls.length && score >= 3) { score += 2; sig.push(["warn","Combina presión con un enlace: patrón clásico de phishing."]); }
   const letters = text.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g, "");
   if(letters.length > 20 && (letters.replace(/[^A-ZÁÉÍÓÚÑ]/g, "").length / letters.length) > 0.4){ score += 1; sig.push(["warn","Demasiadas MAYÚSCULAS."]); }
@@ -672,7 +686,9 @@ function analyzeMessage(text, from){
   const blk = store.get("block", []);
   const low = (text+" "+(from||"")).toLowerCase();
   blk.forEach(w => { if(w && low.includes(w.toLowerCase())){ score += 5; sig.push(["bad",`Coincide con tu lista de bloqueo: «${w}».`]); } });
-  const ph = phoneCheck(from || ""); ph.forEach(s => { score += s[0] === "bad" ? 4 : s[0] === "warn" ? 2 : 0; sig.push(s); });
+  const okFrom = trusted(from, "");
+  if(okFrom){ score = Math.max(0, score - 4); sig.push(["info","Remitente de tu lista de confianza (aun así, nunca compartas códigos)."]); }
+  const ph = okFrom ? [] : phoneCheck(from || ""); ph.forEach(s => { score += s[0] === "bad" ? 4 : s[0] === "warn" ? 2 : 0; sig.push(s); });
   (text.match(/\+\d[\d\s-]{7,}/g) || []).forEach(n => phoneCheck(n).forEach(s => { score += s[0] === "bad" ? 4 : 2; sig.push(s); }));
   const level = score >= 8 ? "bad" : score >= 3 ? "warn" : "ok";
   return { score, level, sig, links };
@@ -687,7 +703,7 @@ function renderSpam(r){
   $("#spamOut").innerHTML = `<div class="result ${r.level}">
     <div class="actions" style="justify-content:space-between;align-items:center"><b>${label}</b><span class="pill ${r.level}">Riesgo ${Math.min(100, r.score*7)}%</span></div>
     ${r.sig.length ? `<ul>${r.sig.map(([l,t]) => `<li>${l==="bad"?"⛔":l==="warn"?"⚠️":"ℹ️"} ${esc(t)}</li>`).join("")}</ul>` : ""}
-    ${r.links.map(l => `<div><span class="mono">${esc(l.host || l.url)}</span>${l.sig.length ? `<ul>${l.sig.map(([lv,t]) => `<li>${lv==="bad"?"⛔":"⚠️"} ${esc(t)}</li>`).join("")}</ul>` : ` <span class="pill ok">sin señales</span>`}</div>`).join("")}
+    ${r.links.map(l => `<div><span class="mono">${esc(l.host || l.url)}</span>${l.sig.length ? `<ul>${l.sig.map(([lv,t]) => `<li>${lv==="bad"?"⛔":lv==="warn"?"⚠️":"ℹ️"} ${esc(t)}</li>`).join("")}</ul>` : ` <span class="pill ok">sin señales</span>`}</div>`).join("")}
     <p><b>Qué hacer:</b> ${advice}</p></div>`;
 }
 $("#spamRun").addEventListener("click", () => {
@@ -707,7 +723,17 @@ function renderBlk(){
 }
 $("#blkAdd").addEventListener("click", () => { const w = $("#blkIn").value.trim(); if(!w) return; const l = store.get("block", []); if(!l.includes(w)) l.push(w); store.set("block", l); $("#blkIn").value = ""; renderBlk(); });
 $("#blkList").addEventListener("click", e => { const w = e.target.dataset.w; if(w != null){ store.set("block", store.get("block", []).filter(x => x !== w)); renderBlk(); } });
-renderHist(); renderBlk(); renderSpam(analyzeMessage($("#spamIn").value, ""));
+function trusted(from, host){
+  const l = store.get("allow", []).map(x => x.toLowerCase()), f = (from||"").toLowerCase().replace(/[\s-]/g, "");
+  return l.some(w => (f && f.includes(w.replace(/[\s-]/g, ""))) || (host && (host === w || host.endsWith("."+w))));
+}
+function renderOk(){
+  const l = store.get("allow", []);
+  $("#okList").innerHTML = l.length ? l.map(w => `<button class="ghost" data-w="${esc(w)}" aria-label="Quitar ${esc(w)}">${esc(w)} ✕</button>`).join("") : `<span class="muted">Lista vacía.</span>`;
+}
+$("#okAdd").addEventListener("click", () => { const w = $("#okIn").value.trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, ""); if(!w) return; const l = store.get("allow", []); if(!l.includes(w)) l.push(w); store.set("allow", l); $("#okIn").value = ""; renderOk(); });
+$("#okList").addEventListener("click", e => { const w = e.target.dataset.w; if(w != null){ store.set("allow", store.get("allow", []).filter(x => x !== w)); renderOk(); } });
+renderHist(); renderBlk(); renderOk(); renderSpam(analyzeMessage($("#spamIn").value, ""));
 
 /* ---------- agentes ---------- */
 const ROLES = [
@@ -889,7 +915,13 @@ $("#dupIn").addEventListener("change", async e => {
 });
 
 /* ---------- copia de seguridad ---------- */
-const BK_KEYS = ["opt","sec","hashes","block","spamHist","scanLog","lastScore"];
+const BK_KEYS = ["opt","sec","hashes","block","allow","spamHist","scanLog","lastScore"];
+$("#netAudit").addEventListener("click", () => {
+  const ext = performance.getEntriesByType("resource").map(e => new URL(e.name, location.href)).filter(u => u.origin !== location.origin);
+  const hosts = {}; ext.forEach(u => hosts[u.hostname] = (hosts[u.hostname] || 0) + 1);
+  const why = { "api.pwnedpasswords.com":"Comprobar filtraciones (solo 5 caracteres de la huella)", "fonts.googleapis.com":"Tipografía de la app", "fonts.gstatic.com":"Tipografía de la app" };
+  $("#netOut").innerHTML = `<div class="result ${ext.length ? "warn" : "ok"}">${ext.length ? `<ul>${Object.entries(hosts).map(([h,n]) => `<li><span class="mono">${esc(h)}</span> × ${n}${why[h] ? " — "+why[h] : ""}</li>`).join("")}</ul>` : "<b>0 conexiones externas.</b> Todo se ha procesado en tu teléfono."}</div>`;
+});
 $("#bkExport").addEventListener("click", () => {
   const data = {}; BK_KEYS.forEach(k => data[k] = store.get(k, null));
   $("#bkTxt").value = JSON.stringify({ escudo:1, data }); copy($("#bkTxt").value, $("#bkTxt"));
