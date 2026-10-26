@@ -1,5 +1,5 @@
 // Caché sin conexión: la app funciona aunque no haya internet.
-const CACHE = "escudo-v1";
+const CACHE = "escudo-v2";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon.svg"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
