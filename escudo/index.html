@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="es">
+<head>
+<title>Escudo Móvil</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f2a2e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una sola columna tipo "consola de guardia" con barra de pestañas fija abajo, pensada para el pulgar */
+:root{
+  --bg:#eef3f2; --panel:#ffffff; --ink:#10282b; --muted:#5a6f71; --line:#d3dfdd;
+  --accent:#0d7c74; --accent-ink:#ffffff; --accent-soft:#d7eeeb;
+  --ok:#1f8a4c; --warn:#b7791f; --bad:#c2372f; --ok-soft:#dff3e7; --warn-soft:#fbefd9; --bad-soft:#f9e0de;
+  --display:"Archivo",system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --tabbar:#0f2a2e; --tabbar-ink:#a9c4c2; --tabbar-on:#ffffff;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1a1c; --panel:#122629; --ink:#e3efed; --muted:#8fa7a5; --line:#21393c;
+  --accent:#3cc2b5; --accent-ink:#06201d; --accent-soft:#163b3a;
+  --ok:#4cc27e; --warn:#e3a94a; --bad:#ef6f66; --ok-soft:#163626; --warn-soft:#3a2d15; --bad-soft:#3d1c1a;
+  --tabbar:#071214; --tabbar-ink:#7f9997; --tabbar-on:#ffffff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1a1c; --panel:#122629; --ink:#e3efed; --muted:#8fa7a5; --line:#21393c;
+  --accent:#3cc2b5; --accent-ink:#06201d; --accent-soft:#163b3a;
+  --ok:#4cc27e; --warn:#e3a94a; --bad:#ef6f66; --ok-soft:#163626; --warn-soft:#3a2d15; --bad-soft:#3d1c1a;
+  --tabbar:#071214; --tabbar-ink:#7f9997; --tabbar-on:#ffffff; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--tabbar)}
+header.top{background:var(--tabbar);color:var(--tabbar-on);padding-block:14px 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top .row{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:12px}
+header.top h1{font:800 22px/1 var(--display);font-stretch:115%;letter-spacing:.01em;margin:0}
+header.top small{display:block;color:var(--tabbar-ink);font:12px/1.3 var(--mono);margin-top:4px}
+.badge-zero{margin-left:auto;font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;border:1px solid #2f5b5d;color:#9fe3da;padding:6px 8px;border-radius:4px;white-space:nowrap}
+main{max-width:680px;margin:0 auto;padding-block:16px calc(96px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+section.view{display:grid;gap:16px}
+h2{font:700 20px/1.15 var(--display);font-stretch:105%;margin:0;text-wrap:balance}
+h3{font:700 16px/1.2 var(--display);margin:0}
+p{margin:0}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px;min-width:0}
+.eyebrow{font:600 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
+.stat b{display:block;font:600 18px/1.2 var(--mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stat span{font-size:12px;color:var(--muted)}
+button,.btn{font:700 15px/1 var(--body);border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:12px 16px;cursor:pointer;min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+button.ghost,.btn.ghost{background:transparent;color:var(--accent)}
+button.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+button:disabled{opacity:.55;cursor:progress}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+textarea,input[type=text],input[type=url],input[type=tel],select{width:100%;font:15px/1.4 var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+textarea{min-height:110px;resize:vertical}
+label.fld{display:grid;gap:6px;font-weight:700;font-size:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;border-radius:999px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.info{background:var(--accent-soft);color:var(--accent)}
+.result{border-left:4px solid var(--line);padding:10px 12px;background:var(--bg);border-radius:0 8px 8px 0;display:grid;gap:8px;min-width:0}
+.result.ok{border-left-color:var(--ok)} .result.warn{border-left-color:var(--warn)} .result.bad{border-left-color:var(--bad)}
+.result ul{margin:0;padding-left:18px} .result li{margin:2px 0}
+.mono{font-family:var(--mono);font-size:12.5px;overflow-wrap:anywhere}
+.meter{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .6s ease}
+.score{display:flex;align-items:center;gap:16px}
+.ring{--v:0;width:96px;height:96px;flex:none;border-radius:50%;background:conic-gradient(var(--ring-c,var(--accent)) calc(var(--v)*1%),var(--line) 0);display:grid;place-items:center}
+.ring b{width:76px;height:76px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font:800 26px/1 var(--display);font-variant-numeric:tabular-nums}
+.check{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;padding:8px 0;border-top:1px solid var(--line)}
+.check:first-of-type{border-top:0}
+.check input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent)}
+.check small{display:block;color:var(--muted)}
+.roles{display:grid;gap:10px}
+.role{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.role .ico{width:44px;height:44px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:800 16px/1 var(--display)}
+.role p{font-size:13px;color:var(--muted)}
+.chat{display:grid;gap:8px;max-height:360px;overflow-y:auto;padding-right:4px}
+.msg{padding:10px 12px;border-radius:10px;max-width:92%;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.me{background:var(--accent);color:var(--accent-ink);justify-self:end}
+.msg.bot{background:var(--bg);border:1px solid var(--line)}
+.msg.bot b.who{display:block;font:600 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:6px}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:18px;text-align:center;display:grid;gap:8px;justify-items:center}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--tabbar);display:grid;grid-template-columns:repeat(6,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);z-index:20}
+nav.tabs button{background:transparent;border:0;border-radius:0;color:var(--tabbar-ink);display:grid;justify-items:center;gap:4px;padding:10px 2px;font:600 11px/1 var(--body);min-height:60px}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-selected=true]{color:var(--tabbar-on);box-shadow:inset 0 3px 0 var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:8px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
+details summary{cursor:pointer;font-weight:700}
+.kbd{font:600 12px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="row">
+  <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 8 13v17c0 15 10 26 24 30 14-4 24-15 24-30V13Z" fill="#0d7c74" stroke="#9fe3da" stroke-width="3"/><path d="m21 32 8 8 15-16" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div><h1>Escudo Móvil</h1><small id="clock">Agentes locales · sin conexión a IA</small></div>
+  <span class="badge-zero" title="Todo se procesa en tu teléfono">0 tokens</span>
+</div></header>
+
+<main>
+<!-- ============ PANEL ============ -->
+<section class="view" id="v-panel">
+  <div class="card">
+    <div class="score">
+      <div class="ring" id="ring"><b id="scoreNum">–</b></div>
+      <div style="display:grid;gap:6px;min-width:0">
+        <span class="eyebrow">Salud del teléfono</span>
+        <h2 id="scoreTitle">Ejecuta el escaneo completo</h2>
+        <p class="muted" id="scoreSub">El Coordinador revisa rendimiento, red, almacenamiento y seguridad en unos segundos.</p>
+      </div>
+    </div>
+    <div class="actions"><button id="fullScan">Escaneo completo</button><button class="ghost" data-go="agentes">Hablar con los agentes</button></div>
+    <div id="fullReport" class="result" hidden></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Tu dispositivo ahora</span>
+    <div class="grid2" id="devStats"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Qué hace y qué no</span>
+    <p>Ninguna app puede borrar virus de otras apps en Android o iPhone sin permisos de sistema. Escudo Móvil hace lo que sí es posible y eficaz: analiza archivos e instaladores APK antes de abrirlos, detecta SMS, correos y enlaces de estafa, mide tu velocidad y te guía paso a paso para eliminar lo que encuentre.</p>
+  </div>
+</section>
+
+<!-- ============ VELOCIDAD ============ -->
+<section class="view" id="v-velocidad" hidden>
+  <div class="card">
+    <span class="eyebrow">Agente Optimizador</span>
+    <h2>Prueba de velocidad</h2>
+    <div class="grid2">
+      <div class="stat"><b id="spDown">–</b><span>Descarga (Mbps)</span></div>
+      <div class="stat"><b id="spPing">–</b><span>Latencia (ms)</span></div>
+      <div class="stat"><b id="spCpu">–</b><span>Procesador (puntos)</span></div>
+      <div class="stat"><b id="spStore">–</b><span>Almacenamiento usado por apps web</span></div>
+    </div>
+    <div class="meter"><i id="spBar"></i></div>
+    <div class="actions"><button id="runSpeed">Medir ahora</button></div>
+    <p class="muted" id="spNote" style="font-size:13px"></p>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Plan de optimización</span>
+    <h2>Acelera tu teléfono</h2>
+    <p class="muted">Marca cada paso cuando lo hagas. El avance se guarda en este teléfono.</p>
+    <div class="meter"><i id="optBar"></i></div>
+    <div id="optList"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Limpieza</span>
+    <h3>Datos de Escudo Móvil</h3>
+    <p class="muted">Borra el historial, las listas y la caché sin conexión de esta app.</p>
+    <div class="actions"><button class="ghost" id="askWipe">Borrar datos de la app</button><button class="danger" id="doWipe" hidden>Sí, borrar todo</button></div>
+  </div>
+</section>
+
+<!-- ============ ANTIVIRUS ============ -->
+<section class="view" id="v-antivirus" hidden>
+  <div class="card">
+    <span class="eyebrow">Agente Guardián</span>
+    <h2>Analizar archivos y APK</h2>
+    <p class="muted">Elige un archivo descargado (APK, PDF, documento, imagen o comprimido). Se analiza dentro del teléfono; no se sube a ningún sitio.</p>
+    <div class="drop" id="drop">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+      <label class="btn" for="fileIn">Elegir archivos</label>
+      <input type="file" id="fileIn" multiple hidden>
+      <small class="muted">o arrástralos aquí</small>
+    </div>
+    <div id="fileResults" style="display:grid;gap:10px"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Revisión de seguridad</span>
+    <h2>Lista del Guardián</h2>
+    <p class="muted">Pasos para encontrar y eliminar apps maliciosas que ya estén instaladas.</p>
+    <div class="meter"><i id="secBar"></i></div>
+    <div id="secList"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Lista negra propia</span>
+    <h3>Huellas SHA-256 bloqueadas</h3>
+    <p class="muted">Si un archivo coincide con una huella de esta lista se marca como peligroso.</p>
+    <div class="actions" style="flex-wrap:nowrap"><input type="text" id="hashIn" placeholder="Pega una huella SHA-256" aria-label="Huella SHA-256"><button id="hashAdd">Añadir</button></div>
+    <div id="hashList" class="mono"></div>
+  </div>
+</section>
+
+<!-- ============ SPAM ============ -->
+<section class="view" id="v-spam" hidden>
+  <div class="card">
+    <span class="eyebrow">Agente Anti-spam</span>
+    <h2>¿Es una estafa?</h2>
+    <p class="muted">Pega un SMS, WhatsApp o correo sospechoso. También puedes pegar solo un enlace o un número.</p>
+    <label class="fld" for="spamIn">Mensaje
+      <textarea id="spamIn">BANCO: Su cuenta ha sido BLOQUEADA por actividad inusual. Verifique sus datos en las proximas 24 horas: http://bancoseguro-verificacion.xyz/login o su tarjeta sera cancelada.</textarea></label>
+    <label class="fld" for="spamFrom">Remitente o número (opcional)
+      <input type="tel" id="spamFrom" placeholder="+34 806 123 456"></label>
+    <div class="actions"><button id="spamRun">Analizar</button><button class="ghost" id="spamClear">Vaciar</button></div>
+    <div id="spamOut"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Bloqueo personal</span>
+    <h3>Números y palabras bloqueadas</h3>
+    <p class="muted">Lo que añadas aquí cuenta como señal de spam en cada análisis.</p>
+    <div class="actions" style="flex-wrap:nowrap"><input type="text" id="blkIn" placeholder="Número o palabra" aria-label="Número o palabra a bloquear"><button id="blkAdd">Añadir</button></div>
+    <div id="blkList" class="actions"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Historial</span>
+    <div id="spamHist" class="muted">Aún no has analizado mensajes.</div>
+  </div>
+</section>
+
+<!-- ============ AGENTES ============ -->
+<section class="view" id="v-agentes" hidden>
+  <div class="card">
+    <span class="eyebrow">Equipo de agentes</span>
+    <h2>Roles activos</h2>
+    <div class="roles" id="roles"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Coordinador · respuestas sin tokens</span>
+    <h2>Pregunta a los agentes</h2>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <form id="chatForm" class="actions" style="flex-wrap:nowrap">
+      <input type="text" id="chatIn" placeholder="Ej.: mi celular está lento" aria-label="Tu pregunta" autocomplete="off">
+      <button type="submit">Enviar</button>
+    </form>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Agente Ahorrador de tokens</span>
+    <h2>Compresor de prompts para Claude</h2>
+    <p class="muted">Cuando sí necesites a Claude Code, pega aquí tu petición: se quitan relleno, repeticiones y espacios para gastar menos tokens.</p>
+    <label class="fld" for="tokIn">Tu prompt
+      <textarea id="tokIn">Hola Claude, por favor me gustaría que me ayudaras con algo. Básicamente quiero que revises el archivo server.properties y que me digas si hay algo que se pueda mejorar para que el servidor vaya más rápido.
+Quiero que revises el archivo server.properties y que me digas si hay algo que se pueda mejorar.
+Muchas gracias de antemano, la verdad es que te lo agradecería mucho.</textarea></label>
+    <div class="actions"><button id="tokRun">Comprimir</button><button class="ghost" id="tokCopy">Copiar resultado</button></div>
+    <div class="grid2">
+      <div class="stat"><b id="tokBefore">–</b><span>Tokens antes (aprox.)</span></div>
+      <div class="stat"><b id="tokAfter">–</b><span>Tokens después (aprox.)</span></div>
+    </div>
+    <textarea id="tokOut" readonly aria-label="Prompt comprimido"></textarea>
+    <details><summary>Plantillas cortas para Claude Code</summary><div id="tplList" style="display:grid;gap:8px;margin-top:10px"></div></details>
+    <details><summary>Reglas para gastar menos tokens</summary>
+      <ul style="margin:10px 0 0;padding-left:18px">
+        <li>Usa este Coordinador para dudas de rutina: responde sin conexión y gratis.</li>
+        <li>En Claude Code, escribe <span class="kbd">/clear</span> al cambiar de tema y <span class="kbd">/compact</span> en sesiones largas.</li>
+        <li>Nombra el archivo exacto (<span class="kbd">server.properties:12</span>) en vez de pedir que busque.</li>
+        <li>Pide diffs o respuestas cortas: «solo el cambio, sin explicación».</li>
+        <li>Mantén un CLAUDE.md corto en tu repo con lo que Claude debe saber siempre.</li>
+        <li>Delega tareas simples a un subagente con un modelo ligero (ver carpeta <span class="kbd">.claude/agents</span>).</li>
+      </ul></details>
+  </div>
+</section>
+<!-- ============ MÁS HERRAMIENTAS ============ -->
+<section class="view" id="v-mas" hidden>
+  <div class="card">
+    <span class="eyebrow">Analista de contraseñas</span>
+    <h2>¿Es segura tu contraseña?</h2>
+    <p class="muted">Se evalúa en el teléfono. Para buscarla en filtraciones solo se envían los 5 primeros caracteres de su huella, nunca la contraseña.</p>
+    <label class="fld" for="pwIn">Contraseña
+      <input type="text" id="pwIn" value="Maria1990!" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <div class="meter"><i id="pwBar"></i></div>
+    <div id="pwOut"></div>
+    <div class="actions"><button class="ghost" id="pwLeak">Buscar en filtraciones</button></div>
+    <h3>Generador</h3>
+    <div class="actions" style="align-items:center">
+      <label for="pwLen" class="muted">Longitud <b id="pwLenV">16</b></label>
+      <input type="range" id="pwLen" min="8" max="40" value="16" style="flex:1;min-width:120px;accent-color:var(--accent)">
+    </div>
+    <div class="actions"><button id="pwGen">Contraseña aleatoria</button><button class="ghost" id="pwPhrase">Frase fácil de recordar</button></div>
+    <div class="actions" style="flex-wrap:nowrap"><input type="text" id="pwNew" readonly aria-label="Contraseña generada" class="mono"><button class="ghost" id="pwCopy">Copiar</button></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Escáner QR</span>
+    <h2>Revisa un código QR antes de abrirlo</h2>
+    <p class="muted">Haz una foto o captura del QR y elígela aquí. Los QR falsos en parquímetros, menús y cartas son una estafa en aumento.</p>
+    <div class="actions"><label class="btn" for="qrIn">Elegir foto del QR</label><input type="file" id="qrIn" accept="image/*" hidden></div>
+    <div id="qrOut"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Limpiador</span>
+    <h2>Fotos y archivos duplicados</h2>
+    <p class="muted">Elige muchas fotos, vídeos o descargas a la vez. Encuentro los duplicados exactos y los archivos más pesados para que los borres desde tu galería.</p>
+    <div class="actions"><label class="btn" for="dupIn">Elegir archivos</label><input type="file" id="dupIn" multiple hidden></div>
+    <div id="dupOut"></div>
+  </div>
+  <div class="card">
+    <span class="eyebrow">Copia de seguridad</span>
+    <h3>Tus ajustes de Escudo</h3>
+    <p class="muted">Copia este texto para pasar tus listas y avances a otro teléfono, o pega uno para restaurarlo.</p>
+    <textarea id="bkTxt" aria-label="Copia de seguridad" class="mono"></textarea>
+    <div class="actions"><button class="ghost" id="bkExport">Generar y copiar</button><button class="ghost" id="bkImport">Restaurar desde el texto</button></div>
+  </div>
+</section>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Secciones">
+  <button role="tab" data-tab="panel" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6Z"/></svg>Panel</button>
+  <button role="tab" data-tab="velocidad" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3 5 14h6l-1 7 8-11h-6Z"/></svg>Velocidad</button>
+  <button role="tab" data-tab="antivirus" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>Antivirus</button>
+  <button role="tab" data-tab="spam" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/><path d="M4 20 20 4"/></svg>Anti-spam</button>
+  <button role="tab" data-tab="agentes" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c0-3 2.5-5 5-5s5 2 5 5m-2 0c0-3 2.5-5 5-5s5 2 5 5"/></svg>Agentes</button>
+  <button role="tab" data-tab="mas" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Más</button>
+</nav>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+"use strict";
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("escudo:"+k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("escudo:"+k, JSON.stringify(v)); }catch(e){} }
+};
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 2600); }
+async function copy(text, el){
+  try{ await navigator.clipboard.writeText(text); toast("Copiado"); }
+  catch(e){ if(el){ el.focus(); el.select(); } toast("Mantén pulsado para copiar"); }
+}
+const isAndroid = /android/i.test(navigator.userAgent);
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+/* ---------- pestañas ---------- */
+function go(tab){
+  $$("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
+  $$("section.view").forEach(s => s.hidden = s.id !== "v-"+tab);
+  window.scrollTo(0, 0);
+  store.set("tab", tab);
+}
+$$("nav.tabs button").forEach(b => b.addEventListener("click", () => go(b.dataset.tab)));
+$$("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+const startTab = (location.hash || "").slice(1);
+go(["panel","velocidad","antivirus","spam","agentes","mas"].includes(startTab) ? startTab : store.get("tab","panel"));
+
+/* ---------- dispositivo ---------- */
+async function deviceInfo(){
+  const c = navigator.connection || {};
+  const info = {
+    cores: navigator.hardwareConcurrency || null,
+    mem: navigator.deviceMemory || null,
+    net: c.effectiveType || null, downlink: c.downlink || null, rtt: c.rtt ?? null, saveData: !!c.saveData,
+    online: navigator.onLine, battery: null, charging: null, quota: null, usage: null,
+    os: isAndroid ? "Android" : isIOS ? "iPhone / iPad" : "Otro"
+  };
+  try{ if(navigator.getBattery){ const b = await navigator.getBattery(); info.battery = Math.round(b.level*100); info.charging = b.charging; } }catch(e){}
+  try{ if(navigator.storage && navigator.storage.estimate){ const e = await navigator.storage.estimate(); info.quota = e.quota; info.usage = e.usage; } }catch(e){}
+  return info;
+}
+const fmtBytes = n => n == null ? "–" : n < 1024 ? n+" B" : n < 1048576 ? (n/1024).toFixed(1)+" KB" : n < 1073741824 ? (n/1048576).toFixed(1)+" MB" : (n/1073741824).toFixed(1)+" GB";
+async function renderDevice(){
+  const i = await deviceInfo();
+  const rows = [
+    [i.os, "Sistema"],
+    [i.cores ? i.cores+" núcleos" : "No disponible", "Procesador"],
+    [i.mem ? "≈ "+i.mem+" GB" : "No disponible", "Memoria RAM"],
+    [i.battery != null ? i.battery+"%"+(i.charging ? " ⚡" : "") : "No disponible", "Batería"],
+    [i.online ? (i.net ? i.net.toUpperCase() : "Conectado") : "Sin conexión", "Red"],
+    [i.quota ? fmtBytes(i.quota) : "No disponible", "Espacio para apps web"]
+  ];
+  $("#devStats").innerHTML = rows.map(r => `<div class="stat"><b>${esc(r[0])}</b><span>${esc(r[1])}</span></div>`).join("");
+  return i;
+}
+renderDevice();
+
+/* ---------- velocidad ---------- */
+function cpuBench(){
+  const t0 = performance.now(); let x = 0, n = 0;
+  while(performance.now() - t0 < 300){ for(let k = 0; k < 20000; k++){ x += Math.sqrt(k*n) % 7; } n++; }
+  return Math.round(n * 10);
+}
+async function netTest(){
+  const out = { down: null, ping: null };
+  try{
+    const pings = [];
+    for(let k = 0; k < 4; k++){ const t = performance.now(); const r = await fetch("ping.txt?r="+Math.random(), {cache:"no-store"}); await r.text(); if(!r.ok) throw 0; pings.push(performance.now()-t); }
+    pings.sort((a,b) => a-b); out.ping = Math.round(pings[1]);
+    const t = performance.now(); const r = await fetch("speed.txt?r="+Math.random(), {cache:"no-store"}); const buf = await r.arrayBuffer(); if(!r.ok) throw 0;
+    const s = (performance.now()-t)/1000; out.down = +((buf.byteLength*8/1e6)/s).toFixed(1);
+  }catch(e){
+    const c = navigator.connection || {};
+    if(c.downlink) out.down = c.downlink, out.est = true;
+    if(c.rtt) out.ping = c.rtt, out.est = true;
+  }
+  return out;
+}
+$("#runSpeed").addEventListener("click", async e => {
+  const b = e.currentTarget; b.disabled = true; b.textContent = "Midiendo…"; $("#spBar").style.width = "15%";
+  const cpu = cpuBench(); $("#spCpu").textContent = cpu; $("#spBar").style.width = "40%";
+  const net = await netTest(); $("#spBar").style.width = "85%";
+  $("#spDown").textContent = net.down ?? "–"; $("#spPing").textContent = net.ping ?? "–";
+  const i = await deviceInfo(); $("#spStore").textContent = fmtBytes(i.usage);
+  $("#spBar").style.width = "100%";
+  const notes = [];
+  if(net.est) notes.push("Valores de red estimados por el sistema (la prueba directa no está disponible aquí).");
+  if(net.down != null && net.down < 5) notes.push("Conexión lenta: acércate al router o cambia de Wi-Fi a datos.");
+  if(net.ping != null && net.ping > 150) notes.push("Latencia alta: reinicia el router o desactiva la VPN si no la usas.");
+  if(cpu < 600) notes.push("Procesador saturado: cierra apps en segundo plano y reinicia el teléfono.");
+  if(i.saveData) notes.push("El modo de ahorro de datos está activado.");
+  $("#spNote").textContent = notes.join(" ") || "Todo en orden.";
+  store.set("lastSpeed", { cpu, ...net, at: Date.now() });
+  b.disabled = false; b.textContent = "Medir de nuevo";
+});
+
+const OPT = [
+  ["restart","Reinicia el teléfono","Libera memoria y cierra procesos atascados. Hazlo una vez por semana."],
+  ["update","Actualiza el sistema y las apps","Ajustes › Sistema › Actualización. Las actualizaciones corrigen fallos de rendimiento y de seguridad."],
+  ["storage","Deja al menos 15% de espacio libre", isIOS ? "Ajustes › General › Almacenamiento del iPhone. Activa «Desinstalar apps no usadas»." : "Ajustes › Almacenamiento › Liberar espacio. Borra descargas viejas y vídeos de WhatsApp."],
+  ["unused","Desinstala apps que no usas en 30 días","Cada app instalada puede ejecutarse en segundo plano y gastar batería."],
+  ["cache","Borra la caché de las apps pesadas", isIOS ? "En iPhone: borra y reinstala la app que más ocupe." : "Ajustes › Apps › (app) › Almacenamiento › Borrar caché. Empieza por navegador, TikTok, Instagram y Facebook."],
+  ["widgets","Quita widgets y fondos animados","Consumen procesador y batería de forma continua."],
+  ["anim", isIOS ? "Activa «Reducir movimiento»" : "Reduce las animaciones a 0.5x", isIOS ? "Ajustes › Accesibilidad › Movimiento › Reducir movimiento." : "Activa Opciones de desarrollador (toca 7 veces «Número de compilación») y ajusta las tres escalas de animación a 0.5x."],
+  ["bg","Limita la actividad en segundo plano", isIOS ? "Ajustes › General › Actualización en segundo plano: déjala solo para mensajería." : "Ajustes › Batería › Uso por app › Restringir para apps que no necesitan avisarte."],
+  ["browser","Limpia el navegador","Cierra pestañas viejas y borra datos de navegación del último mes."]
+];
+const SEC = [
+  ["playprotect", isIOS ? "Mantén iOS actualizado" : "Activa Google Play Protect", isIOS ? "Ajustes › General › Actualización de software. Activa las actualizaciones automáticas." : "Play Store › tu foto › Play Protect › Analizar. Elimina lo que marque como dañino."],
+  ["unknown", isIOS ? "Revisa perfiles instalados" : "Desactiva «Instalar apps desconocidas»", isIOS ? "Ajustes › General › VPN y gestión de dispositivos. Borra perfiles que no reconozcas." : "Ajustes › Apps › Acceso especial › Instalar apps desconocidas. Déjalo desactivado para todas."],
+  ["admin", isIOS ? "Revisa contraseñas filtradas" : "Revisa administradores del dispositivo", isIOS ? "Ajustes › Contraseñas › Recomendaciones de seguridad." : "Ajustes › Seguridad › Apps de administración del dispositivo. Quita cualquier app que no sea de tu empresa o de Google."],
+  ["access","Revisa la accesibilidad", isIOS ? "Ajustes › Privacidad › revisa Localización, Cámara y Micrófono." : "Ajustes › Accesibilidad › Apps instaladas. El malware bancario suele pedir este permiso: desactívalo en apps desconocidas."],
+  ["perms","Revisa permisos peligrosos","Ajustes › Privacidad › Gestor de permisos. Quita SMS, Contactos, Micrófono y Ubicación a apps que no los necesiten."],
+  ["weird","Desinstala apps sospechosas","Señales: icono que desaparece, anuncios a pantalla completa fuera de apps, nombre genérico («Sistema», «Update», «Cleaner»). Si no deja desinstalar, arranca en Modo seguro (mantén pulsado «Apagar») y quítala."],
+  ["2fa","Activa la verificación en dos pasos","En tu cuenta Google/Apple, WhatsApp (Ajustes › Cuenta › Verificación en dos pasos) y banco."],
+  ["backup","Haz una copia de seguridad","Antes de un restablecimiento de fábrica, que es la solución definitiva si el malware no se va."]
+];
+function checklist(list, key, el, bar){
+  const done = store.get(key, {});
+  el.innerHTML = list.map(([id,t,d]) => `<label class="check"><input type="checkbox" id="${key}-${id}" data-id="${id}" ${done[id]?"checked":""}><span><b>${esc(t)}</b><small>${esc(d)}</small></span></label>`).join("");
+  const upd = () => { const n = Object.values(done).filter(Boolean).length; bar.style.width = Math.round(n/list.length*100)+"%"; };
+  el.addEventListener("change", e => { done[e.target.dataset.id] = e.target.checked; store.set(key, done); upd(); });
+  upd();
+  return () => Object.values(done).filter(Boolean).length / list.length;
+}
+const optProgress = checklist(OPT, "opt", $("#optList"), $("#optBar"));
+const secProgress = checklist(SEC, "sec", $("#secList"), $("#secBar"));
+
+$("#askWipe").addEventListener("click", () => { $("#doWipe").hidden = false; });
+$("#doWipe").addEventListener("click", async () => {
+  try{ Object.keys(localStorage).filter(k => k.startsWith("escudo:")).forEach(k => localStorage.removeItem(k)); }catch(e){}
+  try{ if(window.caches){ for(const k of await caches.keys()) await caches.delete(k); } }catch(e){}
+  toast("Datos de la app borrados"); setTimeout(() => location.reload(), 900);
+});
+
+/* ---------- antivirus ---------- */
+const DANGER_PERMS = {
+  BIND_ACCESSIBILITY_SERVICE:["bad","Puede leer y controlar todo lo que haces en pantalla. Típico de troyanos bancarios."],
+  BIND_DEVICE_ADMIN:["bad","Puede bloquear el teléfono y evitar que la desinstales."],
+  SEND_SMS:["bad","Puede enviar SMS de pago sin que te enteres."],
+  RECEIVE_SMS:["warn","Puede leer los códigos de verificación que te llegan por SMS."],
+  READ_SMS:["warn","Puede leer todos tus SMS."],
+  CALL_PHONE:["warn","Puede hacer llamadas."],
+  READ_CALL_LOG:["warn","Lee tu historial de llamadas."],
+  SYSTEM_ALERT_WINDOW:["warn","Puede dibujar ventanas encima de otras apps (pantallas falsas de inicio de sesión)."],
+  REQUEST_INSTALL_PACKAGES:["warn","Puede instalar otras apps."],
+  BIND_NOTIFICATION_LISTENER_SERVICE:["warn","Lee todas tus notificaciones, incluidos códigos."],
+  READ_CONTACTS:["warn","Lee tu agenda de contactos."],
+  RECORD_AUDIO:["warn","Puede usar el micrófono."],
+  CAMERA:["info","Puede usar la cámara."],
+  ACCESS_FINE_LOCATION:["info","Conoce tu ubicación exacta."],
+  ACCESS_BACKGROUND_LOCATION:["warn","Conoce tu ubicación aunque no uses la app."],
+  QUERY_ALL_PACKAGES:["info","Ve qué apps tienes instaladas."],
+  MANAGE_EXTERNAL_STORAGE:["warn","Acceso a todos tus archivos."],
+  RECEIVE_BOOT_COMPLETED:["info","Se inicia sola al encender el teléfono."],
+  READ_PHONE_STATE:["info","Lee el estado del teléfono y su identificador."]
+};
+const RISKY_EXT = ["apk","xapk","apks","exe","msi","bat","cmd","scr","com","js","vbs","jar","ps1","sh","pif","hta","dex","so"];
+function magic(b){
+  const h = (i,n) => [...b.slice(i,i+n)].map(x => x.toString(16).padStart(2,"0")).join("");
+  if(h(0,2)==="4d5a") return "exe";
+  if(h(0,4)==="504b0304") return "zip";
+  if(h(0,4)==="25504446") return "pdf";
+  if(h(0,4)==="7f454c46") return "elf";
+  if(h(0,3)==="ffd8ff") return "jpg";
+  if(h(0,4)==="89504e47") return "png";
+  if(h(0,3)==="474946") return "gif";
+  if(h(0,4)==="52494646") return "riff";
+  if(h(0,4)==="6465780a") return "dex";
+  if(h(4,4)==="66747970") return "mp4";
+  return null;
+}
+async function sha256(buf){
+  if(!crypto.subtle) return null;
+  const d = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(d)].map(x => x.toString(16).padStart(2,"0")).join("");
+}
+function zipEntries(u8){
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength); let eocd = -1;
+  for(let i = u8.length-22; i >= Math.max(0, u8.length-65557); i--){ if(dv.getUint32(i,true) === 0x06054b50){ eocd = i; break; } }
+  if(eocd < 0) return [];
+  const count = dv.getUint16(eocd+10,true); let p = dv.getUint32(eocd+16,true); const out = [];
+  const td = new TextDecoder();
+  for(let k = 0; k < count && p+46 <= u8.length; k++){
+    if(dv.getUint32(p,true) !== 0x02014b50) break;
+    const method = dv.getUint16(p+10,true), csize = dv.getUint32(p+20,true), nlen = dv.getUint16(p+28,true), elen = dv.getUint16(p+30,true), clen = dv.getUint16(p+32,true), off = dv.getUint32(p+42,true);
+    out.push({ name: td.decode(u8.subarray(p+46, p+46+nlen)), method, csize, off });
+    p += 46+nlen+elen+clen;
+  }
+  return out;
+}
+async function zipRead(u8, e){
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  if(dv.getUint32(e.off,true) !== 0x04034b50) return null;
+  const start = e.off+30+dv.getUint16(e.off+26,true)+dv.getUint16(e.off+28,true);
+  const raw = u8.subarray(start, start+e.csize);
+  if(e.method === 0) return raw;
+  if(e.method !== 8 || typeof DecompressionStream === "undefined") return null;
+  const ds = new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(ds).arrayBuffer());
+}
+async function scanFile(file){
+  const findings = []; let level = "ok";
+  const bump = l => { if(l === "bad" || (l === "warn" && level === "ok")) level = l; };
+  const add = (l, t) => { findings.push([l, t]); bump(l); };
+  const name = file.name, parts = name.toLowerCase().split("."), ext = parts.length > 1 ? parts.pop() : "";
+  const buf = await file.arrayBuffer(); const u8 = new Uint8Array(buf);
+  const kind = magic(u8); const hash = await sha256(buf);
+  if(parts.length > 1 && RISKY_EXT.includes(ext) && /^(pdf|doc|docx|jpg|jpeg|png|mp4|mp3|txt|xls|xlsx)$/.test(parts[parts.length-1])) add("bad", `Doble extensión (.${parts[parts.length-1]}.${ext}): se hace pasar por un archivo inofensivo.`);
+  if(RISKY_EXT.includes(ext)) add("warn", `Es un archivo ejecutable (.${ext}). Instálalo solo si viene de una fuente oficial.`);
+  const imgExt = ["jpg","jpeg","png","gif","pdf","mp4","txt","doc"];
+  if(imgExt.includes(ext) && (kind === "exe" || kind === "elf" || kind === "dex" || (kind === "zip" && ext !== "doc"))) add("bad", `Dice ser .${ext} pero por dentro es ${kind.toUpperCase()}. Archivo disfrazado.`);
+  if(kind === "exe") add("warn", "Programa de Windows: no puede ejecutarse en un teléfono; si te lo enviaron como «documento», es sospechoso.");
+  if(hash && store.get("hashes", []).includes(hash)) add("bad", "Coincide con una huella de tu lista negra.");
+  let perms = [];
+  if(kind === "zip"){
+    const entries = zipEntries(u8); const names = entries.map(e => e.name);
+    if(names.includes("AndroidManifest.xml")){
+      if(!["apk","xapk","apks"].includes(ext)) add("bad", "Es una app de Android (APK) escondida con otra extensión.");
+      const man = entries.find(e => e.name === "AndroidManifest.xml");
+      try{
+        const data = await zipRead(u8, man);
+        if(data){
+          const txt = new TextDecoder("utf-16le").decode(data.subarray(0, data.length - (data.length % 2))) + new TextDecoder("latin1").decode(data);
+          perms = [...new Set((txt.match(/android\.permission\.[A-Z_]+/g) || []).map(p => p.replace("android.permission.","")))];
+          const services = ["BIND_ACCESSIBILITY_SERVICE","BIND_DEVICE_ADMIN","BIND_NOTIFICATION_LISTENER_SERVICE"].filter(s => txt.includes(s) && !perms.includes(s));
+          perms.push(...services);
+        } else add("info", "Tu navegador no puede descomprimir el manifiesto; actualízalo para ver los permisos.");
+      }catch(e){ add("info", "No se pudo leer el manifiesto del APK."); }
+      const bad = perms.filter(p => DANGER_PERMS[p] && DANGER_PERMS[p][0] === "bad");
+      const warn = perms.filter(p => DANGER_PERMS[p] && DANGER_PERMS[p][0] === "warn");
+      bad.forEach(p => add("bad", `${p}: ${DANGER_PERMS[p][1]}`));
+      if(warn.length >= 4) add("warn", `Pide ${warn.length} permisos sensibles: ${warn.join(", ")}.`);
+      else warn.forEach(p => add("warn", `${p}: ${DANGER_PERMS[p][1]}`));
+      if(bad.length && (perms.includes("SEND_SMS") || perms.includes("BIND_ACCESSIBILITY_SERVICE")) && perms.includes("SYSTEM_ALERT_WINDOW")) add("bad", "Combinación típica de troyano bancario (accesibilidad o SMS + ventanas superpuestas).");
+      if(names.filter(n => /^classes\d*\.dex$/.test(n)).length > 6) add("warn", "Contiene muchos módulos de código: puede ocultar funciones extra.");
+      if(names.some(n => /^assets\/.*\.(dex|jar|apk)$/i.test(n))) add("bad", "Lleva otra app o código escondido dentro (carga dinámica).");
+    }
+    if(names.some(n => /vbaProject\.bin$/i.test(n))) add("warn", "El documento contiene macros. No las habilites.");
+    if(names.some(n => RISKY_EXT.includes(n.split(".").pop().toLowerCase()) && !/\.(so|dex)$/i.test(n) && !names.includes("AndroidManifest.xml"))) add("warn", "El comprimido contiene ejecutables.");
+  }
+  if(kind === "pdf"){
+    const t = new TextDecoder("latin1").decode(u8.subarray(0, Math.min(u8.length, 4e6)));
+    if(/\/JavaScript|\/JS\b/.test(t)) add("warn", "El PDF contiene JavaScript.");
+    if(/\/Launch/.test(t)) add("bad", "El PDF intenta abrir programas externos (/Launch).");
+    if(/\/EmbeddedFile/.test(t)) add("warn", "El PDF lleva archivos incrustados.");
+    if(/\/OpenAction|\/AA\b/.test(t) && /\/JavaScript|\/JS\b/.test(t)) add("bad", "El PDF ejecuta código automáticamente al abrirse.");
+  }
+  if(["html","htm","js","svg","hta","vbs"].includes(ext)){
+    const t = new TextDecoder().decode(u8.subarray(0, 2e6));
+    if(/eval\s*\(|atob\s*\(|unescape\s*\(|fromCharCode/.test(t)) add("warn", "Contiene código ofuscado (eval/atob).");
+    if(/<form[^>]+(password|contrase)/i.test(t) || /type=["']?password/i.test(t)) add("bad", "Página que pide contraseña guardada como archivo: típico de phishing.");
+  }
+  if(!findings.some(f => f[0] !== "info")) findings.push(["ok", "No se encontraron señales de riesgo."]);
+  return { name, size: file.size, kind, ext, hash, perms, findings, level };
+}
+const LV = { ok:["ok","Sin riesgos"], warn:["warn","Precaución"], bad:["bad","Peligroso"] };
+async function handleFiles(files){
+  for(const f of files){
+    const box = document.createElement("div"); box.className = "result"; box.innerHTML = `<b>${esc(f.name)}</b><span class="muted">Analizando…</span>`;
+    $("#fileResults").prepend(box);
+    try{
+      const r = await scanFile(f);
+      box.className = "result "+r.level;
+      box.innerHTML = `<div class="actions" style="justify-content:space-between;align-items:center"><b style="overflow-wrap:anywhere;min-width:0">${esc(r.name)}</b><span class="pill ${LV[r.level][0]}">${LV[r.level][1]}</span></div>
+        <span class="muted" style="font-size:13px">${fmtBytes(r.size)} · tipo real: ${esc((r.kind||"desconocido").toUpperCase())}${r.perms.length ? " · "+r.perms.length+" permisos" : ""}</span>
+        <ul>${r.findings.map(([l,t]) => `<li>${l==="bad"?"⛔":l==="warn"?"⚠️":l==="ok"?"✅":"ℹ️"} ${esc(t)}</li>`).join("")}</ul>
+        ${r.hash ? `<span class="mono">SHA-256: ${r.hash}</span><div class="actions"><a class="btn ghost" href="https://www.virustotal.com/gui/file/${r.hash}" target="_blank" rel="noopener">Consultar en VirusTotal</a>${r.level==="bad"?`<button class="ghost" data-block="${r.hash}">Añadir a lista negra</button>`:""}</div>` : ""}
+        ${r.level==="bad" ? `<p><b>Qué hacer:</b> no lo abras ni lo instales. Bórralo desde la app Archivos. Si ya lo instalaste, ve a Antivirus › Lista del Guardián.</p>` : ""}`;
+      const log = store.get("scanLog", []); log.unshift({ n:r.name, l:r.level, t:Date.now() }); store.set("scanLog", log.slice(0,50));
+    }catch(e){ box.className = "result warn"; box.innerHTML = `<b>${esc(f.name)}</b><span>No se pudo analizar: el archivo es demasiado grande para la memoria del teléfono.</span>`; }
+  }
+}
+$("#fileIn").addEventListener("change", e => { handleFiles([...e.target.files]); e.target.value = ""; });
+const drop = $("#drop");
+["dragenter","dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => handleFiles([...e.dataTransfer.files]));
+$("#fileResults").addEventListener("click", e => { const h = e.target.dataset && e.target.dataset.block; if(h){ addHash(h); e.target.remove(); } });
+function renderHashes(){
+  const l = store.get("hashes", []);
+  $("#hashList").innerHTML = l.length ? l.map(h => `<div class="actions" style="justify-content:space-between;align-items:center;flex-wrap:nowrap;border-top:1px solid var(--line);padding-top:6px"><span style="min-width:0">${h}</span><button class="ghost" data-del="${h}" aria-label="Quitar">✕</button></div>`).join("") : `<span class="muted" style="font-family:var(--body)">Lista vacía.</span>`;
+}
+function addHash(h){ h = h.trim().toLowerCase(); if(!/^[a-f0-9]{64}$/.test(h)){ toast("Eso no es una huella SHA-256 válida"); return; } const l = store.get("hashes", []); if(!l.includes(h)) l.push(h); store.set("hashes", l); renderHashes(); toast("Huella bloqueada"); }
+$("#hashAdd").addEventListener("click", () => { addHash($("#hashIn").value); $("#hashIn").value = ""; });
+$("#hashList").addEventListener("click", e => { const h = e.target.dataset.del; if(h){ store.set("hashes", store.get("hashes", []).filter(x => x !== h)); renderHashes(); } });
+renderHashes();
+
+/* ---------- anti-spam ---------- */
+const BRANDS = {
+  paypal:["paypal.com"], amazon:["amazon.com","amazon.es","amazon.com.mx","amazon.com.br"], netflix:["netflix.com"], apple:["apple.com","icloud.com"],
+  google:["google.com","google.es","youtube.com","gmail.com"], microsoft:["microsoft.com","live.com","outlook.com","office.com"], whatsapp:["whatsapp.com","wa.me"],
+  facebook:["facebook.com","fb.com"], instagram:["instagram.com"], bbva:["bbva.es","bbva.mx","bbva.com"], santander:["santander.es","santander.com.mx","bancosantander.es"],
+  banorte:["banorte.com"], caixa:["caixabank.es"], correos:["correos.es","correosexpress.com"], dhl:["dhl.com"], fedex:["fedex.com"], ups:["ups.com"],
+  sat:["sat.gob.mx"], hacienda:["agenciatributaria.gob.es"], movistar:["movistar.es","movistar.com"], telcel:["telcel.com"], mercadolibre:["mercadolibre.com","mercadolibre.com.mx"],
+  banco:[], bank:[]
+};
+const SHORT = ["bit.ly","tinyurl.com","t.co","cutt.ly","is.gd","rb.gy","shorturl.at","ow.ly","t.ly","goo.su","tiny.cc","s.id","rebrand.ly","bit.do","qrco.de"];
+const BAD_TLD = ["xyz","top","click","zip","mov","tk","ml","ga","cf","gq","work","support","rest","cam","icu","buzz","live","shop","online","site","info","vip","sbs","cfd","lol","monster","quest","bond"];
+function analyzeUrl(raw){
+  const sig = [];
+  let u; try{ u = new URL(/^https?:\/\//i.test(raw) ? raw : "http://"+raw); }catch(e){ return { url: raw, sig: [["warn","Enlace mal formado."]] }; }
+  const host = u.hostname.toLowerCase(), labels = host.split("."), tld = labels[labels.length-1], base = labels.slice(-2).join(".");
+  if(u.protocol === "http:" && /^https?:/i.test(raw)) sig.push(["warn","No usa conexión segura (http en vez de https)."]);
+  if(/^\d+\.\d+\.\d+\.\d+$/.test(host)) sig.push(["bad","Usa una dirección IP en vez de un nombre: las webs legítimas no hacen esto."]);
+  if(host.includes("xn--")) sig.push(["bad","Usa letras de otro alfabeto para imitar un dominio conocido (punycode)."]);
+  if(SHORT.includes(host)) sig.push(["warn","Enlace acortado: oculta el destino real."]);
+  if(BAD_TLD.includes(tld)) sig.push(["warn",`Terminación .${tld}, muy usada en estafas.`]);
+  if(labels.length > 4) sig.push(["warn","Demasiados subdominios: intenta parecer otra web."]);
+  if((host.match(/-/g) || []).length >= 2) sig.push(["warn","Muchos guiones en el dominio."]);
+  if(u.username || raw.includes("@")) sig.push(["bad","Contiene «@»: lo que va antes es un engaño, el destino real va después."]);
+  if(u.port && !["80","443"].includes(u.port)) sig.push(["warn","Puerto poco común."]);
+  if(/\.(apk|exe|scr|bat|js|vbs|xapk)(\?|$)/i.test(u.pathname)) sig.push(["bad","Descarga directamente un programa o app."]);
+  if(/login|verif|secure|update|account|cuenta|acceso|confirm|validar|desbloque|reembolso|premio/i.test(host+u.pathname) && sig.length) sig.push(["warn","Palabras de inicio de sesión o verificación en el enlace."]);
+  for(const [b, official] of Object.entries(BRANDS)){
+    if(host.includes(b) && !official.some(o => host === o || host.endsWith("."+o))){
+      sig.push(["bad",`Menciona «${b}» pero no es su web oficial${official.length ? " ("+official[0]+")" : ""}.`]); break;
+    }
+  }
+  return { url: u.href, host, base, sig };
+}
+const RULES = [
+  [/urgente|inmediat|último aviso|ultimo aviso|24 ?h|48 ?h|hoy mismo|expira|caduca|act[uú]e ya|urgent|immediately|final notice/i, 3, "Te mete prisa (urgencia artificial)."],
+  [/bloquead|suspendid|cancelad|desactivad|restringid|locked|suspended|unusual activity|actividad inusual|acceso no autorizado/i, 3, "Amenaza con bloquear o cancelar tu cuenta."],
+  [/verifi|confirm[ea] (sus|tus) datos|actualiz[ae] (sus|tus) datos|valida|update your|verify your/i, 2, "Pide verificar o actualizar datos."],
+  [/contrase|clave|\bpin\b|cvv|c[oó]digo de (verificaci|seguridad)|n[uú]mero de tarjeta|password|one.?time code/i, 4, "Pide contraseñas, PIN o códigos. Ningún banco lo hace por mensaje."],
+  [/ganad|ganaste|premio|sorteo|loter|regalo|gratis|herencia|bono de|reembolso|devoluci[oó]n|you won|winner|prize|free gift|refund/i, 3, "Promete premios, regalos o reembolsos."],
+  [/paquete|env[ií]o|aduana|entrega (pendiente|fallida)|repartidor|tracking|delivery|parcel|customs/i, 2, "Habla de un paquete o envío pendiente (estafa muy común)."],
+  [/hola (mam[aá]|pap[aá])|cambi[eé] de (n[uú]mero|celular)|nuevo n[uú]mero|se me (rompi[oó]|cay[oó]) el (m[oó]vil|celular|tel[eé]fono)|hi mum|hi mom/i, 4, "Estafa del «familiar con número nuevo»."],
+  [/bitcoin|cripto|crypto|inversi[oó]n|rentabilidad|rendimiento garantizado|trading|forex|duplica tu dinero/i, 3, "Promete inversiones o criptomonedas."],
+  [/transferencia|bizum|western union|tarjeta regalo|gift card|dep[oó]sit[ao]|paga (ahora|aqu[ií])|pago pendiente|deuda/i, 3, "Pide un pago o transferencia."],
+  [/trabajo desde casa|gana \$?\d+|ganar dinero|empleo f[aá]cil|like.*(pago|pagamos)|work from home|earn \$?\d+/i, 3, "Oferta de trabajo demasiado buena."],
+  [/hacienda|\bsat\b|seguridad social|polic[ií]a|guardia civil|multa|dgt|tr[aá]fico|irs/i, 2, "Se hace pasar por una entidad oficial."],
+  [/haz clic|haga clic|pulsa aqu[ií]|click here|toca el enlace|entra (aqu[ií]|al enlace)/i, 1, "Insiste en que pulses un enlace."]
+];
+function phoneCheck(num){
+  const sig = []; const n = num.replace(/[^\d+]/g, "");
+  if(!n) return sig;
+  if(/^(\+34|0034)?(80[3-7]|905|90[78])/.test(n)) sig.push(["bad","Número de tarificación especial en España (803/806/807/905): llamar o responder cuesta mucho."]);
+  if(/^(\+1|1)?900/.test(n)) sig.push(["bad","Número 900 de pago en EE. UU."]);
+  if(/^(\+52|52)?01?900/.test(n)) sig.push(["bad","Número de pago en México."]);
+  if(/^\+(882|883|979|870|881|808)/.test(n)) sig.push(["bad","Red internacional especial: estas llamadas son muy caras."]);
+  if(/^\+(225|233|234|216|252|269|222|223|224|242|243|370|371|375|381|387|591|675|678|679|682|686|691)/.test(n)) sig.push(["warn","Prefijo internacional usado en llamadas perdidas de estafa (wangiri). No devuelvas la llamada."]);
+  if(/^[A-Za-z]/.test(num.trim())) sig.push(["info","Remitente con nombre: puede falsificarse. No confíes solo en el nombre."]);
+  return sig;
+}
+function analyzeMessage(text, from){
+  const sig = []; let score = 0;
+  for(const [re, w, why] of RULES){ if(re.test(text)){ sig.push([w >= 3 ? "bad" : "warn", why]); score += w; } }
+  const urls = (text.match(/(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+|\b[a-z0-9-]+(\.[a-z0-9-]+)*\.(com|net|org|xyz|top|click|info|es|mx|co|ly|io|me|app|site|online|shop|live|link|gd|at|cc|tk|ml|ga|cf|gq|icu|buzz|vip|sbs|cfd)\b[^\s]*)/gi) || []).slice(0, 8);
+  const links = urls.map(analyzeUrl);
+  links.forEach(l => l.sig.forEach(s => { score += s[0] === "bad" ? 4 : 2; }));
+  if(urls.length && score >= 3) { score += 2; sig.push(["warn","Combina presión con un enlace: patrón clásico de phishing."]); }
+  const letters = text.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g, "");
+  if(letters.length > 20 && (letters.replace(/[^A-ZÁÉÍÓÚÑ]/g, "").length / letters.length) > 0.4){ score += 1; sig.push(["warn","Demasiadas MAYÚSCULAS."]); }
+  if(/!{2,}|\${2,}|€{2,}/.test(text)){ score += 1; sig.push(["warn","Signos de exclamación o dinero repetidos."]); }
+  const blk = store.get("block", []);
+  const low = (text+" "+(from||"")).toLowerCase();
+  blk.forEach(w => { if(w && low.includes(w.toLowerCase())){ score += 5; sig.push(["bad",`Coincide con tu lista de bloqueo: «${w}».`]); } });
+  const ph = phoneCheck(from || ""); ph.forEach(s => { score += s[0] === "bad" ? 4 : s[0] === "warn" ? 2 : 0; sig.push(s); });
+  (text.match(/\+\d[\d\s-]{7,}/g) || []).forEach(n => phoneCheck(n).forEach(s => { score += s[0] === "bad" ? 4 : 2; sig.push(s); }));
+  const level = score >= 8 ? "bad" : score >= 3 ? "warn" : "ok";
+  return { score, level, sig, links };
+}
+function renderSpam(r){
+  const label = { ok:"Parece legítimo", warn:"Sospechoso", bad:"Estafa probable" }[r.level];
+  const advice = {
+    ok:"No se detectaron señales claras. Aun así, nunca compartas códigos ni contraseñas.",
+    warn:"No pulses enlaces. Si dice ser de una empresa, entra tú mismo en su app oficial o llama al número de su web.",
+    bad:"No respondas ni pulses nada. Bloquea el número, denúncialo como spam y bórralo. Si ya diste datos, cambia tu contraseña y llama a tu banco."
+  }[r.level];
+  $("#spamOut").innerHTML = `<div class="result ${r.level}">
+    <div class="actions" style="justify-content:space-between;align-items:center"><b>${label}</b><span class="pill ${r.level}">Riesgo ${Math.min(100, r.score*7)}%</span></div>
+    ${r.sig.length ? `<ul>${r.sig.map(([l,t]) => `<li>${l==="bad"?"⛔":l==="warn"?"⚠️":"ℹ️"} ${esc(t)}</li>`).join("")}</ul>` : ""}
+    ${r.links.map(l => `<div><span class="mono">${esc(l.host || l.url)}</span>${l.sig.length ? `<ul>${l.sig.map(([lv,t]) => `<li>${lv==="bad"?"⛔":"⚠️"} ${esc(t)}</li>`).join("")}</ul>` : ` <span class="pill ok">sin señales</span>`}</div>`).join("")}
+    <p><b>Qué hacer:</b> ${advice}</p></div>`;
+}
+$("#spamRun").addEventListener("click", () => {
+  const t = $("#spamIn").value.trim(), f = $("#spamFrom").value.trim();
+  if(!t && !f){ toast("Pega un mensaje, enlace o número"); return; }
+  const r = analyzeMessage(t, f); renderSpam(r);
+  const h = store.get("spamHist", []); h.unshift({ s: (t || f).slice(0, 70), l: r.level, t: Date.now() }); store.set("spamHist", h.slice(0, 20)); renderHist();
+});
+$("#spamClear").addEventListener("click", () => { $("#spamIn").value = ""; $("#spamFrom").value = ""; $("#spamOut").innerHTML = ""; $("#spamIn").focus(); });
+function renderHist(){
+  const h = store.get("spamHist", []);
+  $("#spamHist").innerHTML = h.length ? h.map(x => `<div class="actions" style="justify-content:space-between;align-items:center;flex-wrap:nowrap;border-top:1px solid var(--line);padding-block:6px"><span style="min-width:0;overflow-wrap:anywhere;color:var(--ink)">${esc(x.s)}</span><span class="pill ${x.l}">${{ok:"OK",warn:"Duda",bad:"Estafa"}[x.l]}</span></div>`).join("") : "Aún no has analizado mensajes.";
+}
+function renderBlk(){
+  const l = store.get("block", []);
+  $("#blkList").innerHTML = l.length ? l.map(w => `<button class="ghost" data-w="${esc(w)}" aria-label="Quitar ${esc(w)}">${esc(w)} ✕</button>`).join("") : `<span class="muted">Sin elementos bloqueados.</span>`;
+}
+$("#blkAdd").addEventListener("click", () => { const w = $("#blkIn").value.trim(); if(!w) return; const l = store.get("block", []); if(!l.includes(w)) l.push(w); store.set("block", l); $("#blkIn").value = ""; renderBlk(); });
+$("#blkList").addEventListener("click", e => { const w = e.target.dataset.w; if(w != null){ store.set("block", store.get("block", []).filter(x => x !== w)); renderBlk(); } });
+renderHist(); renderBlk(); renderSpam(analyzeMessage($("#spamIn").value, ""));
+
+/* ---------- agentes ---------- */
+const ROLES = [
+  ["CO","Coordinador","Recibe tus preguntas, decide qué agente responde y une los informes del escaneo completo.","panel"],
+  ["OP","Optimizador","Mide red, procesador y espacio, y te da un plan para acelerar el teléfono.","velocidad"],
+  ["GU","Guardián antivirus","Analiza APK y archivos, detecta disfraces y permisos peligrosos, y guía la eliminación.","antivirus"],
+  ["AS","Filtro anti-spam","Puntúa SMS, correos, enlaces y números con reglas contra estafas y phishing.","spam"],
+  ["PR","Auditor de privacidad","Revisa permisos, accesibilidad, administradores y verificación en dos pasos.","antivirus"],
+  ["PW","Analista de contraseñas","Mide la fuerza de tus claves, busca filtraciones y genera claves seguras.","mas"],
+  ["QR","Escáner QR","Lee QR desde una foto y revisa el enlace antes de que lo abras.","mas"],
+  ["LI","Limpiador","Encuentra fotos y archivos duplicados o muy pesados para liberar espacio.","mas"],
+  ["AT","Ahorrador de tokens","Responde lo rutinario sin IA y comprime tus prompts cuando sí usas Claude Code.","agentes"]
+];
+$("#roles").innerHTML = ROLES.map(([i,n,d,t]) => `<div class="role"><span class="ico">${i}</span><div style="min-width:0"><h3>${n}</h3><p>${d}</p></div><button class="ghost" data-go2="${t}" aria-label="Abrir ${n}">Abrir</button></div>`).join("");
+$("#roles").addEventListener("click", e => { const t = e.target.dataset.go2; if(t) go(t); });
+
+const KB = [
+  ["Optimizador", /lent|r[aá]pid|velocidad|se traba|congel|lag|calient|memoria|ram|espacio|almacen|lleno/i, () =>
+    "Plan rápido:\n1. Reinicia el teléfono.\n2. Libera espacio hasta tener al menos 15% libre.\n3. Borra caché de navegador y redes sociales.\n4. Desinstala apps que no uses.\n5. Reduce animaciones.\nEn la pestaña Velocidad tienes la prueba y la lista completa."],
+  ["Optimizador", /bater[ií]a|carga|se descarga|dura poco/i, () =>
+    "Para la batería:\n1. Ajustes › Batería › mira qué app gasta más.\n2. Restringe el segundo plano de esa app.\n3. Baja el brillo y el tiempo de pantalla a 30 s.\n4. Quita fondos animados y widgets.\nSi una app desconocida gasta mucho, puede ser malware: revisa la Lista del Guardián."],
+  ["Guardián antivirus", /virus|malware|troyano|hack|infect|anuncios|publicidad|pop.?up|esp[ií]a|spyware/i, () =>
+    "Para limpiar el teléfono:\n1. Abre Play Protect y pulsa Analizar (Android).\n2. Busca apps con nombre genérico o sin icono y desinstálalas.\n3. Quita permisos de Accesibilidad y Administrador a apps desconocidas.\n4. Si no puedes desinstalar, arranca en Modo seguro y vuelve a intentarlo.\n5. Si sigue, haz copia y restablece de fábrica.\nLa Lista del Guardián tiene cada paso."],
+  ["Guardián antivirus", /apk|instalar|descarg|archivo|adjunto/i, () =>
+    "Antes de abrir un archivo o instalar una APK, analízalo en la pestaña Antivirus. Te digo si está disfrazado, qué permisos pide y su huella para comprobarla en VirusTotal. Instala apps solo desde Play Store o App Store."],
+  ["Filtro anti-spam", /spam|sms|mensaje|estafa|phishing|enlace|link|correo|whatsapp|llamada|n[uú]mero/i, () =>
+    "Pega el mensaje, enlace o número en la pestaña Anti-spam y te digo el riesgo. Reglas de oro:\n• Ningún banco pide claves por mensaje.\n• No pulses enlaces de paquetes o premios.\n• Si un familiar dice tener número nuevo, llámale al de siempre.\n• No devuelvas llamadas perdidas de prefijos raros."],
+  ["Auditor de privacidad", /privacidad|permiso|ubicaci|micr[oó]fono|c[aá]mara|contrase|cuenta|robaron|2fa|dos pasos/i, () =>
+    "Revisión de privacidad:\n1. Gestor de permisos: quita SMS, contactos, micrófono y ubicación a apps que no lo necesiten.\n2. Activa la verificación en dos pasos en Google/Apple, WhatsApp y banco.\n3. Cambia contraseñas repetidas.\n4. Revisa sesiones abiertas en tus cuentas y cierra las que no reconozcas."],
+  ["Ahorrador de tokens", /token|claude|prompt|ia\b|costo|gastar|ahorr/i, () =>
+    "Para gastar menos con Claude Code:\n• Usa este chat para lo rutinario: 0 tokens.\n• Comprime tu prompt aquí abajo antes de enviarlo.\n• /clear al cambiar de tema, /compact en sesiones largas.\n• Indica archivo y línea exactos.\n• Pide «solo el diff».\n• Usa los subagentes ligeros de .claude/agents para tareas simples."],
+  ["Analista de contraseñas", /contrase|clave|password|filtra/i, () => "En Más › Analista de contraseñas mides la fuerza de una clave, compruebas si se filtró y generas una nueva. Usa una clave distinta por cuenta y activa la verificación en dos pasos."],
+  ["Escáner QR", /\bqr\b|c[oó]digo qr/i, () => "En Más › Escáner QR eliges la foto del código y te digo adónde lleva antes de abrirlo. Desconfía de QR pegados encima de otros en parquímetros y menús."],
+  ["Limpiador", /duplicad|fotos|galer[ií]a|liberar|ocupa/i, () => "En Más › Limpiador eliges tus fotos o descargas y te digo cuáles están repetidas y cuáles pesan más. Luego bórralas desde tu galería y vacía la papelera."],
+  ["Coordinador", /escaneo (completo|general|total)|escanea(r)? (todo|el (tel|cel|m[oó]v))|revis(a|ión) (todo|completa)|analiza todo|estado|salud/i, () => { setTimeout(() => { go("panel"); $("#fullScan").click(); }, 400); return "Lanzo el escaneo completo en el Panel."; }]
+];
+function reply(q){
+  const hits = KB.filter(k => k[1].test(q));
+  if(!hits.length) return [["Coordinador","No tengo eso en mi base local. Prueba con: «está lento», «tengo virus», «¿es estafa este SMS?», «batería», «permisos» o «ahorrar tokens». Si de verdad necesitas a Claude, comprime antes tu pregunta abajo para gastar menos."]];
+  return hits.slice(0, 2).map(k => [k[0], k[2]()]);
+}
+function say(who, text, me){
+  const d = document.createElement("div"); d.className = "msg "+(me ? "me" : "bot");
+  d.innerHTML = me ? esc(text) : `<b class="who">${esc(who)}</b>${esc(text)}`;
+  $("#chat").append(d); $("#chat").scrollTop = $("#chat").scrollHeight;
+}
+$("#chatForm").addEventListener("submit", e => {
+  e.preventDefault(); const q = $("#chatIn").value.trim(); if(!q) return;
+  say("", q, true); $("#chatIn").value = ""; reply(q).forEach(([w,t]) => say(w, t));
+});
+say("Coordinador", "Hola. Somos nueve agentes que trabajan dentro de tu teléfono, sin internet ni tokens. Pregúntame algo como «mi celular está lento» o «¿cómo sé si tengo virus?».");
+
+const FILLER = [
+  /\b(hola|buenas|buenos d[ií]as|hey)\s*(claude)?[,.!]?\s*/gi, /\bpor favor,?\s*/gi, /\b(me gustar[ií]a|quisiera|quiero) que (me )?/gi, /\b(podr[ií]as|puedes|ser[ií]as tan amable de)\s*/gi,
+  /\bb[aá]sicamente,?\s*/gi, /\bla verdad (es )?que\s*/gi, /\b(muchas )?gracias( de antemano)?[^.\n]*[.!]?/gi, /\bte lo agradecer[ií]a( mucho)?[.!]?/gi,
+  /\b(me )?ayud(a|e|ar|aras|ases|arme)( me)? con (algo|esto)[.,]?\s*/gi, /\b(un poco|realmente|simplemente|literalmente|obviamente)\s+/gi, /\bplease,?\s*/gi, /\b(could|can|would) you\s*/gi, /\bi would like you to\s*/gi, /\bthanks?( you)?( in advance)?[^.\n]*[.!]?/gi
+];
+const estTokens = s => Math.ceil(s.trim().length / 3.6);
+function compress(s){
+  let t = s;
+  FILLER.forEach(re => t = t.replace(re, ""));
+  const seen = new Set(); const lines = [];
+  t.split(/\n+/).forEach(l => {
+    l.split(/(?<=[.!?])\s+/).forEach(sen => {
+      const k = sen.toLowerCase().replace(/[^a-záéíóúñ0-9 ]/g, "").replace(/\s+/g, " ").trim();
+      if(!k || [...seen].some(x => x.includes(k) || (k.length > 25 && k.includes(x) && x.length > k.length*.7))) return;
+      seen.add(k); lines.push(sen.trim());
+    });
+  });
+  t = lines.map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("\n").replace(/[ \t]+/g, " ").replace(/\s+([,.])/g, "$1").replace(/^[,.\s]+/gm, "").trim();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+$("#tokRun").addEventListener("click", () => {
+  const s = $("#tokIn").value; const c = compress(s);
+  $("#tokOut").value = c; $("#tokBefore").textContent = estTokens(s);
+  const a = estTokens(c); $("#tokAfter").textContent = a + (s.trim() ? ` (−${Math.max(0, Math.round((1 - a/estTokens(s))*100))}%)` : "");
+});
+$("#tokCopy").addEventListener("click", () => copy($("#tokOut").value, $("#tokOut")));
+const TPL = [
+  ["Arreglar error","Error en <archivo>:<línea>: <mensaje>. Corrige con el cambio mínimo. Solo el diff."],
+  ["Revisar seguridad","Revisa <archivo> solo por vulnerabilidades. Lista: línea, riesgo, arreglo. Máx. 5."],
+  ["Optimizar servidor","Optimiza server.properties para 4 jugadores y 2 GB RAM. Solo claves cambiadas."],
+  ["Explicar corto","Explica <archivo> en 5 viñetas."],
+  ["Subagente barato","Usa el subagente optimizador para: <tarea>."]
+];
+$("#tplList").innerHTML = TPL.map(([n,t],k) => `<div class="result"><b>${esc(n)}</b><span class="mono">${esc(t)}</span><div><button class="ghost" data-tpl="${k}">Copiar</button></div></div>`).join("");
+$("#tplList").addEventListener("click", e => { const k = e.target.dataset.tpl; if(k != null) copy(TPL[k][1]); });
+$("#tokRun").click();
+
+/* ---------- contraseñas ---------- */
+const COMMON = ["123456","123456789","12345678","password","qwerty","111111","12345","123123","000000","abc123","1234567","password1","iloveyou","1234","contraseña","contrasena","qwerty123","admin","teamo","tequiero","princesa","123321","654321","666666","121212","dragon","monkey","letmein","football","futbol","america","barcelona","realmadrid","pokemon","superman","batman","naruto","welcome","hola123","mexico","argentina","colombia","españa","sunshine","azerty","1q2w3e4r","zxcvbnm","asdfgh"];
+const WORDS = "agua arena barco bosque cable campo cielo clavo cometa cobre dado delfin duna eco faro fresa fuego gato globo hielo hoja isla jardin lago lapiz leon luna mango mapa mar miel monte nube oro oso palma papel pez piano piedra pino plata pluma puente queso radio rayo reloj rio roca rosa sal selva sol taza tigre tren trigo uva valle vela verde viento vino volcan yate zorro".split(" ");
+function pwAnalyze(p){
+  const out = []; if(!p) return { bits:0, out:["Escribe una contraseña."] };
+  let pool = 0; if(/[a-z]/.test(p)) pool += 26; if(/[A-Z]/.test(p)) pool += 26; if(/\d/.test(p)) pool += 10; if(/[^A-Za-z0-9]/.test(p)) pool += 33;
+  let bits = p.length * Math.log2(Math.max(pool, 1));
+  const low = p.toLowerCase().replace(/[^a-zñ0-9]/g, "");
+  if(COMMON.some(c => low === c || (c.length > 4 && low.includes(c)))){ bits = Math.min(bits, 10); out.push("Está en las listas de contraseñas más usadas."); }
+  if(/(.)\1{2,}/.test(p)){ bits -= 10; out.push("Repite el mismo carácter."); }
+  if(/(0123|1234|2345|3456|4567|5678|6789|abcd|bcde|qwer|asdf|zxcv)/i.test(p)){ bits -= 12; out.push("Contiene secuencias de teclado o números."); }
+  if(/(19[4-9]\d|20[0-3]\d)/.test(p)){ bits -= 10; out.push("Contiene un año: es lo primero que prueban."); }
+  if(/^[A-Z][a-z]+\d+[^A-Za-z0-9]?$/.test(p)){ bits -= 12; out.push("Patrón «Nombre + números + símbolo»: muy predecible."); }
+  if(p.length < 12) out.push("Usa al menos 12 caracteres.");
+  if(pool < 50 && p.length < 16) out.push("Mezcla mayúsculas, números y símbolos, o usa una frase larga.");
+  return { bits: Math.max(0, bits), out };
+}
+function crackTime(bits){
+  const s = Math.pow(2, bits) / 2 / 1e10;
+  if(s < 1) return "al instante"; if(s < 3600) return Math.round(s/60) + " minutos"; if(s < 86400*2) return Math.round(s/3600) + " horas";
+  if(s < 31536000*2) return Math.round(s/86400) + " días"; if(s < 31536000*1e6) return Math.round(s/31536000).toLocaleString("es") + " años"; return "millones de años";
+}
+function renderPw(){
+  const p = $("#pwIn").value, r = pwAnalyze(p);
+  const lvl = r.bits >= 70 ? "ok" : r.bits >= 45 ? "warn" : "bad";
+  $("#pwBar").style.width = Math.min(100, r.bits/90*100) + "%"; $("#pwBar").style.background = `var(--${lvl})`;
+  $("#pwOut").innerHTML = p ? `<div class="result ${lvl}"><div class="actions" style="justify-content:space-between;align-items:center"><b>${{ok:"Fuerte",warn:"Mejorable",bad:"Débil"}[lvl]}</b><span class="pill ${lvl}">${Math.round(r.bits)} bits</span></div><span>Tiempo para descifrarla con un equipo potente: <b>${crackTime(r.bits)}</b>.</span>${r.out.length ? `<ul>${r.out.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : ""}</div>` : "";
+}
+$("#pwIn").addEventListener("input", renderPw);
+$("#pwLeak").addEventListener("click", async () => {
+  const p = $("#pwIn").value; if(!p) return;
+  try{
+    const d = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(p));
+    const h = [...new Uint8Array(d)].map(x => x.toString(16).padStart(2,"0")).join("").toUpperCase();
+    const r = await fetch("https://api.pwnedpasswords.com/range/" + h.slice(0,5)); if(!r.ok) throw 0;
+    const line = (await r.text()).split("\n").find(l => l.startsWith(h.slice(5)));
+    const n = line ? +line.split(":")[1] : 0;
+    $("#pwOut").insertAdjacentHTML("beforeend", `<div class="result ${n ? "bad" : "ok"}">${n ? `⛔ Apareció <b>${n.toLocaleString("es")}</b> veces en filtraciones. No la uses.` : "✅ No aparece en filtraciones conocidas."}</div>`);
+  }catch(e){ toast("Sin acceso al servicio de filtraciones. Prueba con la app instalada y con internet."); }
+});
+const rnd = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+$("#pwLen").addEventListener("input", e => $("#pwLenV").textContent = e.target.value);
+$("#pwGen").addEventListener("click", () => {
+  const cs = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*?-_+=";
+  let s; do { s = Array.from({length:+$("#pwLen").value}, () => cs[rnd(cs.length)]).join(""); } while(!(/[A-Z]/.test(s) && /[a-z]/.test(s) && /\d/.test(s) && /[^A-Za-z0-9]/.test(s)));
+  $("#pwNew").value = s;
+});
+$("#pwPhrase").addEventListener("click", () => {
+  const n = Math.max(4, Math.round(+$("#pwLen").value / 5));
+  $("#pwNew").value = Array.from({length:n}, () => { const w = WORDS[rnd(WORDS.length)]; return w[0].toUpperCase() + w.slice(1); }).join("-") + "-" + rnd(100);
+});
+$("#pwCopy").addEventListener("click", () => copy($("#pwNew").value, $("#pwNew")));
+renderPw(); $("#pwGen").click();
+
+/* ---------- QR ---------- */
+$("#qrIn").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+  const out = $("#qrOut");
+  if(!("BarcodeDetector" in window)){ out.innerHTML = `<div class="result warn">Tu navegador no lee QR desde fotos. Usa Chrome en Android, o abre la cámara, mantén pulsado el enlace del QR para copiarlo sin abrirlo y pégalo en Anti-spam.</div>`; return; }
+  try{
+    const codes = await new BarcodeDetector({ formats:["qr_code"] }).detect(await createImageBitmap(f));
+    if(!codes.length){ out.innerHTML = `<div class="result warn">No encontré ningún QR. Prueba con una foto más cercana y nítida.</div>`; return; }
+    out.innerHTML = codes.map(c => {
+      const v = c.rawValue, isUrl = /^(https?:\/\/|www\.)/i.test(v);
+      if(/^WIFI:/i.test(v)) return `<div class="result ${/T:nopass|T:WEP/i.test(v) ? "warn" : "ok"}"><b>Red Wi-Fi</b><span class="mono">${esc(v)}</span>${/T:nopass|T:WEP/i.test(v) ? "<span>⚠️ Red sin contraseña o con cifrado débil.</span>" : ""}</div>`;
+      if(!isUrl) return `<div class="result"><b>Texto del QR</b><span class="mono">${esc(v)}</span></div>`;
+      const a = analyzeUrl(v), lvl = a.sig.some(s => s[0] === "bad") ? "bad" : a.sig.length ? "warn" : "ok";
+      return `<div class="result ${lvl}"><div class="actions" style="justify-content:space-between;align-items:center"><b>Enlace</b><span class="pill ${lvl}">${{ok:"Sin señales",warn:"Precaución",bad:"Peligroso"}[lvl]}</span></div><span class="mono">${esc(a.url)}</span>${a.sig.length ? `<ul>${a.sig.map(([l,t]) => `<li>${l==="bad"?"⛔":"⚠️"} ${esc(t)}</li>`).join("")}</ul>` : ""}${lvl === "bad" ? "<p><b>No lo abras.</b> Si estaba pegado sobre otro QR (parquímetro, menú), avisa al local.</p>" : ""}</div>`;
+    }).join("");
+  }catch(err){ out.innerHTML = `<div class="result warn">No se pudo leer la imagen.</div>`; }
+});
+
+/* ---------- duplicados ---------- */
+$("#dupIn").addEventListener("change", async e => {
+  const files = [...e.target.files]; e.target.value = ""; if(!files.length) return;
+  const out = $("#dupOut"); out.innerHTML = `<p class="muted">Comparando ${files.length} archivos…</p>`;
+  const bySize = {}; files.forEach(f => (bySize[f.size] = bySize[f.size] || []).push(f));
+  const groups = {};
+  for(const list of Object.values(bySize)){
+    if(list.length < 2) continue;
+    for(const f of list){ try{ const h = await sha256(await f.slice(0, 4*1048576).arrayBuffer()) + ":" + f.size; (groups[h] = groups[h] || []).push(f); }catch(err){} }
+  }
+  const dups = Object.values(groups).filter(g => g.length > 1);
+  const waste = dups.reduce((s, g) => s + g[0].size * (g.length - 1), 0);
+  const big = files.filter(f => f.size > 50*1048576).sort((a,b) => b.size - a.size).slice(0, 10);
+  const total = files.reduce((s, f) => s + f.size, 0);
+  out.innerHTML = `<div class="grid2"><div class="stat"><b>${dups.length}</b><span>Grupos duplicados</span></div><div class="stat"><b>${fmtBytes(waste)}</b><span>Espacio recuperable</span></div><div class="stat"><b>${fmtBytes(total)}</b><span>Total revisado</span></div><div class="stat"><b>${big.length}</b><span>Archivos de más de 50 MB</span></div></div>
+    ${dups.length ? `<div class="result warn"><b>Duplicados (conserva uno de cada grupo)</b><ul>${dups.map(g => `<li>${g.map(f => esc(f.name)).join(" = ")} · ${fmtBytes(g[0].size)}</li>`).join("")}</ul></div>` : `<div class="result ok">✅ No hay duplicados exactos.</div>`}
+    ${big.length ? `<div class="result"><b>Los más pesados</b><ul>${big.map(f => `<li>${esc(f.name)} · ${fmtBytes(f.size)}</li>`).join("")}</ul></div>` : ""}`;
+});
+
+/* ---------- copia de seguridad ---------- */
+const BK_KEYS = ["opt","sec","hashes","block","spamHist","scanLog","lastScore"];
+$("#bkExport").addEventListener("click", () => {
+  const data = {}; BK_KEYS.forEach(k => data[k] = store.get(k, null));
+  $("#bkTxt").value = JSON.stringify({ escudo:1, data }); copy($("#bkTxt").value, $("#bkTxt"));
+});
+$("#bkImport").addEventListener("click", () => {
+  try{ const j = JSON.parse($("#bkTxt").value); if(!j.escudo) throw 0; BK_KEYS.forEach(k => { if(j.data[k] != null) store.set(k, j.data[k]); }); toast("Ajustes restaurados"); setTimeout(() => location.reload(), 900); }
+  catch(e){ toast("Ese texto no es una copia de Escudo válida"); }
+});
+
+/* ---------- compartir desde otras apps (Android) ---------- */
+(() => {
+  const q = new URLSearchParams(location.search), shared = [q.get("title"), q.get("text"), q.get("url")].filter(Boolean).join(" ");
+  if(shared){ go("spam"); $("#spamIn").value = shared; $("#spamRun").click(); history.replaceState(null, "", location.pathname); }
+})();
+
+/* ---------- escaneo completo (Coordinador) ---------- */
+$("#fullScan").addEventListener("click", async e => {
+  const b = e.currentTarget; b.disabled = true; b.textContent = "Escaneando…";
+  const i = await renderDevice(); const cpu = cpuBench(); const net = await netTest();
+  const items = []; let score = 100;
+  const pen = (n, l, t) => { score -= n; items.push([l, t]); };
+  if(i.quota && i.usage && i.usage/i.quota > 0.8) pen(10, "warn", "Optimizador: el espacio de apps web está casi lleno.");
+  if(i.battery != null && i.battery < 20 && !i.charging) pen(8, "warn", `Optimizador: batería al ${i.battery}%. Conecta el cargador.`);
+  if(i.mem && i.mem <= 2) pen(6, "warn", "Optimizador: poca RAM; mantén pocas apps abiertas.");
+  if(cpu < 600) pen(10, "warn", "Optimizador: el procesador va saturado. Reinicia el teléfono.");
+  if(!i.online) pen(5, "warn", "Optimizador: sin conexión a internet.");
+  else if(net.down != null && net.down < 5) pen(6, "warn", `Optimizador: red lenta (${net.down} Mbps).`);
+  const op = optProgress(), sp = secProgress();
+  if(sp < 1) pen(Math.round((1-sp)*30), sp < .5 ? "bad" : "warn", `Guardián y Auditor: completaste ${Math.round(sp*100)}% de la Lista del Guardián.`);
+  if(op < 1) pen(Math.round((1-op)*15), "warn", `Optimizador: completaste ${Math.round(op*100)}% del plan de optimización.`);
+  const scans = store.get("scanLog", []).filter(x => x.l === "bad").length;
+  if(scans) pen(10, "bad", `Guardián: detectaste ${scans} archivo(s) peligroso(s). Asegúrate de haberlos borrado.`);
+  const spam = store.get("spamHist", []).filter(x => x.l === "bad").length;
+  if(spam) items.push(["info", `Anti-spam: has frenado ${spam} estafa(s). Bloquea esos remitentes.`]);
+  if(!items.length) items.push(["ok","Todo en orden. Repite el escaneo cada semana."]);
+  score = Math.max(5, Math.min(100, score));
+  const lvl = score >= 80 ? "ok" : score >= 55 ? "warn" : "bad";
+  $("#ring").style.setProperty("--v", score); $("#ring").style.setProperty("--ring-c", `var(--${lvl})`);
+  $("#scoreNum").textContent = score;
+  $("#scoreTitle").textContent = { ok:"Teléfono en buen estado", warn:"Hay cosas por mejorar", bad:"Necesita atención" }[lvl];
+  $("#scoreSub").textContent = `Escaneado ${new Date().toLocaleString("es")}. ${cpu} puntos de CPU${net.down != null ? ", "+net.down+" Mbps" : ""}.`;
+  const r = $("#fullReport"); r.hidden = false; r.className = "result "+lvl;
+  r.innerHTML = `<b>Informe del Coordinador</b><ul>${items.map(([l,t]) => `<li>${l==="bad"?"⛔":l==="warn"?"⚠️":l==="ok"?"✅":"ℹ️"} ${esc(t)}</li>`).join("")}</ul>`;
+  store.set("lastScore", { score, at: Date.now() });
+  b.disabled = false; b.textContent = "Escanear de nuevo";
+});
+const last = store.get("lastScore", null);
+if(last){ const lvl = last.score >= 80 ? "ok" : last.score >= 55 ? "warn" : "bad"; $("#ring").style.setProperty("--v", last.score); $("#ring").style.setProperty("--ring-c", `var(--${lvl})`); $("#scoreNum").textContent = last.score; $("#scoreSub").textContent = "Último escaneo: "+new Date(last.at).toLocaleString("es")+". Pulsa para actualizar."; const days = Math.floor((Date.now()-last.at)/864e5); if(days >= 7){ $("#scoreTitle").textContent = `Hace ${days} días del último escaneo`; } }
+
+/* ---------- modo app instalable (sin conexión) ---------- */
+if("serviceWorker" in navigator && location.protocol === "https:" && !/claude\.(ai|site)|claudeusercontent/.test(location.hostname)){
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
